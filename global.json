@@ -1,0 +1,5 @@
+{
+  "sdk": {
+    "version": "2.1.818" // Substitua pela versão específica do .NET Core 2.1 que você instalou
+  }
+}
