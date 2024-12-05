@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TechNation.Services
 {
-    public class LogConverterService
+    public class LogConverterService : ILogConverterService
     {
         public string ConvertLog(string inputLog)
         {
