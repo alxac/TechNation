@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TechNation.Services;
@@ -13,65 +12,57 @@ namespace TechNation.Controllers
     public class LogsController : ControllerBase
     {
         private readonly ILogConverterService _logConverterService;
-        private readonly HttpClient _httpClient;
 
         public LogsController(ILogConverterService logConverterService)
         {
             _logConverterService = logConverterService;
-            _httpClient = new HttpClient();
         }
 
-        [HttpPost("converter")]
-        public async Task<IActionResult> ConvertLog([FromBody] string logContent)
+        // Teste de URL - POST https://localhost:44377/api/logs/byTexto
+        // Teste de URL - POST https://localhost:44377/api/logs/byTexto?salvarArquivo=true
+        /// <summary>
+        /// Realiza a conversão com base em um texto ou uma URL.
+        /// </summary>
+        /// <param name="logContent"></param>
+        /// <returns></returns>
+        [HttpPost("byTexto")]
+        public async Task<IActionResult> ConvertLog([FromBody] string logContent, [FromQuery] bool salvarArquivo = false)
         {
-            var convertedLog = _logConverterService.ConvertLog(logContent);
+            var convertedLog = await _logConverterService.ConverterLog(logContent, salvarArquivo);
             return Ok(convertedLog);
         }
 
+        // Teste de URL - POST https://localhost:44377/api/logs/byArquivo
+        // Teste de URL - POST https://localhost:44377/api/logs/byArquivo?salvarArquivo=true
+        /// <summary>
+        /// Realiza a conversão com base em um Arquivo enviado.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
         [HttpPost("byArquivo")]
-        public async Task<IActionResult> ConvertLogFromFile([FromForm] IFormFile file)
+        public async Task<IActionResult> ConverterArquivo([FromForm] IFormFile file, [FromQuery] bool salvarArquivo = false)
         {
-            if (file == null)
-                return Ok("Erro");
-            var reader = new StreamReader(file.OpenReadStream());
-            var logContent = await reader.ReadToEndAsync();
-            var convertedLog = _logConverterService.ConvertLog(logContent);
+            var convertedLog = await _logConverterService.ConverterArquivo(file, salvarArquivo);
             return Ok(convertedLog);
         }
 
-        [HttpGet("byUrl")]
-        public async Task<IActionResult> ConvertLogFromUrl(string url)
-        {
-            var response = await _httpClient.GetStringAsync(url);
-            var convertedLog = _logConverterService.ConvertLog(response);
-            return Ok(convertedLog);
-        }
 
+        // Teste de URL - GET https://localhost:44377/api/logs/bySalvar
+        // Teste de URL - GET https://localhost:44377/api/logs/bySalvar?salvarArquivo=true
+        /// <summary>
+        /// Realiza a conversão e salva em arquivo na pasta LOGS
+        /// </summary>
+        /// <param name="logContent"></param>
+        /// <returns></returns>
         [HttpGet("bySalvar")]
-        public async Task<IActionResult> ConvertAndSaveLogFromUrl(string url)
+        public async Task<IActionResult> ConvertSalvar([FromBody]  string logContent, [FromQuery] bool salvarArquivo = false)
         {
-            var response = await _httpClient.GetStringAsync(url);
-            var convertedLog = _logConverterService.ConvertLog(response);
-
-            var logsDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
-            if (!Directory.Exists(logsDirectory))
-            {
-                Directory.CreateDirectory(logsDirectory);
-            }
-
-            var fileName = $"converted-log-{System.Guid.NewGuid()}.txt";
-            var filePath = Path.Combine(logsDirectory, fileName);
-            await System.IO.File.WriteAllTextAsync(filePath, convertedLog);
-
-            return Ok(new
-            {
-                Message = "Log Convertido com sucesso.",
-                FilePath = filePath
-            });
+            var convertedLog = await _logConverterService.ConverterLog(logContent, salvarArquivo);
+            return Ok(convertedLog);
         }
 
 
-        // GET api/values
+        // Teste de URL - GET https://localhost:44377/api/logs
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
