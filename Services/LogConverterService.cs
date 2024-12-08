@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using TechNation.CrossCutting;
+using TechNation.Data.Repositorio;
 using TechNation.Dominio;
 
 namespace TechNation.Services
@@ -12,10 +13,12 @@ namespace TechNation.Services
     public class LogConverterService : ILogConverterService
     {
         private readonly HttpClient _httpClient;
+        private ILogRepositorio _repositorio;
 
-        public LogConverterService()
+        public LogConverterService(ILogRepositorio repositorio)
         {
             _httpClient = new HttpClient();
+            _repositorio = repositorio;
         }
 
         public async Task<string> ConverterLog(string inputLog, bool salvarArquivo)
@@ -57,6 +60,8 @@ namespace TechNation.Services
                             //Fazendo a verificação pela funções Extension de Cache de Status
                             CacheStatus = parts[2].ToCacheStatus(),
                         };
+                        //TODO: Gravar no banco de dados
+                        _repositorio.
                         //TODO: Gravar no banco de dados
                         outputLog.Add($"{logEntry.Provider} {logEntry.HttpMethod} {logEntry.StatusCode} {logEntry.UriPath} {logEntry.TimeTaken} {logEntry.ResponseSize} {logEntry.CacheStatus}");
                     }
